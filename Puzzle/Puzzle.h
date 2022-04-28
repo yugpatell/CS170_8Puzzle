@@ -1,3 +1,6 @@
+#ifndef __PUZZLE_H__
+#define __PUZZLE_H__
+
 #include "Node.h"
 #include <algorithm>
 #include <iostream>
@@ -5,10 +8,6 @@
 #include <vector>
 #include <bits/stdc++.h>
 #include <unordered_map>
-
-
-#ifndef __PUZZLE_H__
-#define __PUZZLE_H__
 
 enum searchAlgorithm {
     UNIFORM,
@@ -52,6 +51,7 @@ public:
         pair<int, int> index = findZeroIndex(current->getCurrentState());
         vector<Node *> newNodes;
 
+
         // BLANK field (Zero) is NOT located in the far LEFT column;
         if (index.second != 0) {
             vector<vector<int>> copy = current->getCurrentState();
@@ -62,7 +62,7 @@ public:
                             copy);
             newNodes.push_back(
                     new Node(h, current->getG() + 1, h + current->getG() + 1,
-                             current->getDepth() + 1, "left", current, copy));
+                             current->getDepth() + 1, "left", current, copy, generateHash(copy)));
         }
 
         // BLANK field (Zero) is NOT located in the RIGHT left column;
@@ -74,7 +74,7 @@ public:
                                                                                 : calculateEuclideanDistance(copy);
             newNodes.push_back(
                     new Node(h, current->getG() + 1, h + current->getG() + 1,
-                             current->getDepth() + 1, "right", current, copy));
+                             current->getDepth() + 1, "right", current, copy, generateHash(copy)));
         }
 
         // BLANK field (Zero) is NOT located in the very BOTTOM row;
@@ -86,7 +86,7 @@ public:
                                                                                 : calculateEuclideanDistance(copy);
             newNodes.push_back(
                     new Node(h, current->getG() + 1, h + current->getG() + 1,
-                             current->getDepth() + 1, "down", current, copy));
+                             current->getDepth() + 1, "down", current, copy, generateHash(copy)));
         }
 
         // BLANK field (Zero) is NOT located in the very TOP row;
@@ -98,7 +98,7 @@ public:
                                                                                 : calculateEuclideanDistance(copy);
             newNodes.push_back(
                     new Node(h, current->getG() + 1, h + current->getG() + 1,
-                             current->getDepth() + 1, "up", current, copy));
+                             current->getDepth() + 1, "up", current, copy, generateHash(copy)));
         }
 
         if (!newNodes.empty()) increaseExpandedCount();
@@ -108,8 +108,8 @@ public:
 
     void solvePuzzle() {
         time_t start, end;
-        Node *root = new Node(0, 0, 0, 0, "", nullptr, getInitialState());
-        vector<Node *> explored;
+        Node *root = new Node(0, 0, 0, 0, "", nullptr, getInitialState(), generateHash(getInitialState()));
+        unordered_map<string, int> explored;
         time(&start);
 
         /* Resource: https://stackoverflow.com/questions/2439283/how-can-i-create-min-stl-priority-queue */
@@ -132,7 +132,7 @@ public:
                 cout << "Time taken by program is: " << fixed << end_time << setprecision(5) << endl;
                 return;
             }
-            explored.push_back(currNode);
+            explored[generateHash(currNode->getCurrentState())] = 1;
             vector<Node *> nodes = possibleOperators(currNode);
             for (Node *node: nodes) {
                 if (!isInExplored(explored, node) && !isInFrontier(frontier, node)) {
@@ -237,14 +237,12 @@ public:
         return top;
     }
 
-    bool isInExplored(vector<Node *> &explored, Node *&currNode) {
-        for (Node *node: explored) {
-            if (node->getCurrentState() == currNode->getCurrentState()) return true;
-        }
+    bool isInExplored(unordered_map<string, int> &explored, Node *&currNode) {
+        if (explored[currNode->getHashKey()] == 1) return true;
         return false;
     }
 
-    bool isInFrontier(priority_queue<Node *, vector<Node *>, CompareCost> frontier, Node *&currNode) {
+    bool isInFrontier(priority_queue<Node *, vector<struct Node *>, CompareCost> frontier, Node *&currNode) {
         while (!frontier.empty()) {
             if (frontier.top()->getCurrentState() == currNode->getCurrentState()) return true;
             frontier.pop();
@@ -264,6 +262,16 @@ public:
         }
 
         return true;
+    }
+
+    string generateHash(const vector<vector<int>> & currentState) {
+        string output = "";
+        for (int i = 0; i < currentState.size(); i++) {
+            for (int j = 0; j < currentState.at(i).size(); j++) {
+                output += currentState.at(i).at(j);
+            }
+        }
+        return output;
     }
 
     vector<vector<int>> getInitialState() { return this->initialState; }

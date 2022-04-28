@@ -15,10 +15,11 @@ private:
   string move;
   Node *parent;
   vector<vector<int>> currentState;
+  string hashKey;
 
 public:
   Node(int h, int g, int cost, int depth, string move, Node *parent,
-       vector<vector<int>> currentState) {
+       vector<vector<int>> currentState, string hashKey) {
     this->h = h;
     this->g = g;
     this->cost = cost;
@@ -26,6 +27,7 @@ public:
     this->move = move;
     this->parent = parent;
     this->currentState = currentState;
+    this->hashKey = hashKey;
   }
 
   int getH() const { return this->h; }
@@ -35,6 +37,7 @@ public:
   string getMove() const { return this->move; }
   Node *getParent() const { return this->parent; }
   vector<vector<int>> getCurrentState() const { return this->currentState; }
+  string getHashKey() const { return this->hashKey; }
 };
 
 #endif //__NODE_H__

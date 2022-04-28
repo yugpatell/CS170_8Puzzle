@@ -109,14 +109,14 @@ public:
     void solvePuzzle() {
         time_t start, end;
         Node *root = new Node(0, 0, 0, 0, "", nullptr, getInitialState(), generateHash(getInitialState()));
-        unordered_map<string, int> explored;
+        unordered_map<string, int> explored, frontierMap;
         time(&start);
 
         /* Resource: https://stackoverflow.com/questions/2439283/how-can-i-create-min-stl-priority-queue */
         priority_queue<Node *, vector<Node *>, CompareCost> frontier;
         frontier.push(root);
+        frontierMap[root->getHashKey()] = 1;
         updateMaxFrontierSize(frontier.size());
-
         while (true) {
             if (frontier.empty()) return;
             Node *currNode = getLowestCostNode(frontier);
@@ -135,7 +135,8 @@ public:
             explored[generateHash(currNode->getCurrentState())] = 1;
             vector<Node *> nodes = possibleOperators(currNode);
             for (Node *node: nodes) {
-                if (!isInExplored(explored, node) && !isInFrontier(frontier, node)) {
+                if (!isInExplored(explored, node) && !isInFrontier(frontierMap, node)) {
+                    frontierMap[currNode->getHashKey()] = 1;
                     frontier.push(node);
                 } else {
                     delete node;
@@ -242,11 +243,8 @@ public:
         return false;
     }
 
-    bool isInFrontier(priority_queue<Node *, vector<struct Node *>, CompareCost> frontier, Node *&currNode) {
-        while (!frontier.empty()) {
-            if (frontier.top()->getCurrentState() == currNode->getCurrentState()) return true;
-            frontier.pop();
-        }
+    bool isInFrontier(unordered_map<string, int> &frontierMap, Node *&currNode) {
+        if (frontierMap[currNode->getHashKey()] == 1) return true;
         return false;
     }
 

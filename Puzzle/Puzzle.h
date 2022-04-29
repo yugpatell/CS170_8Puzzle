@@ -8,6 +8,8 @@
 #include <vector>
 #include <bits/stdc++.h>
 #include <unordered_map>
+#include <chrono>
+
 
 enum searchAlgorithm {
     UNIFORM,
@@ -107,10 +109,9 @@ public:
 
 
     void solvePuzzle() {
-        time_t start, end;
         Node *root = new Node(0, 0, 0, 0, "", nullptr, getInitialState(), generateHash(getInitialState()));
         unordered_map<string, int> explored, frontierMap;
-        time(&start);
+        auto started = chrono::high_resolution_clock::now();
 
         /* Resource: https://stackoverflow.com/questions/2439283/how-can-i-create-min-stl-priority-queue */
         priority_queue<Node *, vector<Node *>, CompareCost> frontier;
@@ -118,18 +119,24 @@ public:
         frontierMap[root->getHashKey()] = 1;
         updateMaxFrontierSize(frontier.size());
         while (true) {
-            if (frontier.empty()) return;
+            if (frontier.empty()) {
+                cerr << "Failure detected!" << endl;
+                cout << "The maximum number of nodes in the queue at any one time: " << getMaxFrontierSize() << endl;
+                cout << "The number of nodes expanded: " << getExpandedNodesCount() << endl;
+                return;
+            };
             Node *currNode = getLowestCostNode(frontier);
             if (compareStates(this->getFinalState(), currNode->getCurrentState())) {
-                time(&end);
-                double end_time = end - start;
+                auto done = std::chrono::high_resolution_clock::now();
+                auto end_time = std::chrono::duration_cast<std::chrono::milliseconds>(done-started).count();
                 printSolution(currNode);
                 cout << "Goal!!!" << endl;
                 cout << "To solve this problem, the search algorithm expanded a total of " << getExpandedNodesCount()
                      << " numbers of nodes" << endl;
                 cout << "The maximum number of nodes in the queue at any one time: " << getMaxFrontierSize() << endl;
                 cout << "The depth of the goal node was: " << currNode->getDepth() << endl;
-                cout << "Time taken by program is: " << fixed << end_time << setprecision(5) << endl;
+                /* Resource to print time: https://stackoverflow.com/questions/36042637/how-to-calculate-execution-time-in-milliseconds */
+                cout << "Time taken by program is: " << fixed << end_time << "ms." << endl;
                 return;
             }
             explored[generateHash(currNode->getCurrentState())] = 1;
@@ -144,6 +151,7 @@ public:
             }
             updateMaxFrontierSize(max(getMaxFrontierSize(), static_cast<int>(frontier.size())));
         }
+
     }
 
     /*
@@ -167,8 +175,6 @@ public:
             for (int j = 0; j < currentState.at(i).size(); j++) {
                 if (currentState.at(i).at(j) == 0) continue; // Ignore zero's calcuation
                 pair<int, int> location = getLocationInFinalState(currentState.at(i).at(j));
-//                cout << "Location (currentState) of " << currentState.at(i).at(j) << " is: at " << i << " " << j
-//                     << endl;
                 calculateDistance += (abs(location.first - i) + abs(location.second - j));
             }
         }
@@ -179,9 +185,6 @@ public:
         for (int i = 0; i < this->getFinalState().size(); i++) {
             for (int j = 0; j < this->getFinalState().at(i).size(); j++) {
                 if (this->getFinalState().at(i).at(j) == num) {
-//                    cout << "From (finalState) getLocation: " << this->getFinalState().at(i).at(j) << " is located at: "
-//                         << i << " " << j
-//                         << endl;
                     return make_pair(i, j);
                 }
             }

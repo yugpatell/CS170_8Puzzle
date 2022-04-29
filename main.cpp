@@ -9,8 +9,8 @@ using namespace std;
 
 
 vector<vector<int>> initialState = {{1, 2, 3},
-                                    {4, 8, 0},
-                                    {7, 6, 5}};
+                                    {4, 5, 6},
+                                    {7, 8, 0}};
 
 /* Resource: https://www.delftstack.com/howto/cpp/cpp-split-string-by-space/ */
 

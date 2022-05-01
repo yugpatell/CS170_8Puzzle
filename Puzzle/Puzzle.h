@@ -9,6 +9,7 @@
 #include <bits/stdc++.h>
 #include <unordered_map>
 #include <chrono>
+#include <cmath>
 
 
 enum searchAlgorithm {
@@ -143,6 +144,7 @@ public:
             vector<Node *> nodes = possibleOperators(currNode);
             for (Node *node: nodes) {
                 if (!isInExplored(explored, node) && !isInFrontier(frontierMap, node)) {
+                    int temp = this->calculateEuclideanDistance(node->getCurrentState());
                     frontierMap[currNode->getHashKey()] = 1;
                     frontier.push(node);
                 } else {
@@ -170,12 +172,12 @@ public:
     }
 
     int calculateEuclideanDistance(const vector<vector<int>> &currentState) {
-        int calculateDistance = 0;
+        double calculateDistance = 0;
         for (int i = 0; i < currentState.size(); i++) {
             for (int j = 0; j < currentState.at(i).size(); j++) {
                 if (currentState.at(i).at(j) == 0) continue; // Ignore zero's calcuation
                 pair<int, int> location = getLocationInFinalState(currentState.at(i).at(j));
-                calculateDistance += (abs(location.first - i) + abs(location.second - j));
+                calculateDistance += sqrt(pow((location.first - i),2) + pow((location.second - j), 2));
             }
         }
         return calculateDistance;
